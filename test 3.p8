@@ -9,19 +9,20 @@ draw_menu()
 selection_perso()
 music(03)
 create_player()
---objects={}
+o={x=0,y=0,sprite=85}
 end
 
 function _update()
 	player_movement()
 	animated_movement()
+	create_object()
 end
 
 function _draw()
 	cls()
 	draw_map()
 	draw_player()
-	create_object()
+	draw_object()
 end
 
 
@@ -99,9 +100,9 @@ end
 --f=false
 
 function create_object()
-o={p.x,p.y,sprite=105}
-if (btn(❎)) add (objects,o)
---then draw_object()
+if (btn(❎)) 
+then o={x=(p.x+2),y=(p.y+2),sprite=105}
+end
 end
 
 function draw_object(x,y)
