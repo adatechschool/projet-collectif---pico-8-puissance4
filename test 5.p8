@@ -4,34 +4,80 @@ __lua__
 --jeu
 
 function _init()
-scene="menu"
-draw_menu()
-selection_perso()
-music(03)
-create_player()
-o={x=0,y=0,sprite=85}
+	 scene="menu"
+	 objects={}
+	 o={x=0,y=0,sprite=85}
+	 p={x=6,y=110,sprite=73}
+	 if scene=="menu" then music(00)
+	 elseif scene=="game" then music (01)
+	 end
 end
 
 function _update()
-	player_movement()
-	animated_movement()
-	create_object()
+    if scene=="menu" then
+        update_menu()
+        
+    elseif scene=="game" then
+        update_game()
+        
+    end
 end
 
 function _draw()
-	cls()
-	draw_map()
-	draw_player()
-	draw_object()
+    if scene=="menu" then
+        draw_menu()
+    elseif scene=="game" then
+        draw_game()
+    end
 end
 
+function update_game()
+    if btnp(❎) then
+        scene="menu"
+    end
+ player_movement()
+	animated_movement()
+	create_garden()
+end
+
+function draw_game()
+		 cls()
+			draw_map()
+			draw_player()
+			draw_garden()
+end
+
+-----old
+
+--function _init()
+--scene="menu"
+--draw_menu()
+--selection_perso()
+--music(03)
+--end
+
+--o={x=0,y=0,sprite=85}
+--p={x=6,y=110,sprite=73}
+
+--function _update()
+--	player_movement()
+--	animated_movement()
+--	create_object()
+--end
+
+--function _draw()
+--	cls()
+--	draw_map()
+--	draw_player()
+--	draw_object()
+--end
 
 -->8
 --map
 
 function draw_map()
 map(0,0,0,0,64,64)
-print("deplaces toi avec\n⬅️⬆️➡️⬇️\net plantes avec p!",36,2)
+print("deplaces toi avec\n⬅️⬆️➡️⬇️\net plantes avec o!",36,2)
 end
 
 --function next_tile(x,y)
@@ -68,10 +114,6 @@ p.sprite=73
 end
 end
 
---function planter(p.x,p.y)
---next_tile(x,y)
---music(0)
---end
 -->8
 -- messages
 
@@ -95,21 +137,31 @@ end
 -->8
 --objets
 
---constantes
---t=true
---f=false
-
-function create_object()
-if (btn(❎)) 
+function create_garden()
+if (btn(4,0)) -- c'est la touche "w"
 then o={x=(p.x+2),y=(p.y+2),sprite=105}
 end
 end
 
-function draw_object(x,y)
+function draw_garden(x,y)
 spr(o.sprite,o.x,o.y)
 end
+
+-----pour player 2 :
+
+--function create_building()
+--if (btn(4,1)) -- c'est la touche "w"
+--then o={x=(p.x+2),y=(p.y+2),sprite=121}
+--end
+--end
 -->8
 --menu 
+
+function update_menu()
+    if btnp(❎) then
+        scene="game"
+    end
+end
 
 function draw_menu()
 cls()
@@ -120,11 +172,11 @@ spr(73,30,90)
 spr(89,80,90)
 end
 
-function selection_perso()
- if btnp(❎)
-		then _update()
- end
-end
+--function selection_perso()
+-- if btnp(❎)
+--		then create_player()
+--	end
+--end
 
 --function update_game()
 -- if btnp(❎)
@@ -307,15 +359,16 @@ __map__
 f4f1f2f3f4f1f20000f10000000000f3f4000000000000f3f4f1f2f3f4f1f2f300f1f200f4f100f300f10000000000000000f2f30000f20000f100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
 010d01001801018120182201832018420185201862018720180401812018220183201843018530186401874018040181401824018340184501855018650187500c0500c0500c2503035030450305503066030760
-000a01000c6700b6700c6700d6700e67010670116701767015670176700c670196701a6501e67017640216600b66024650276502a6402c6402d6302e6302f620316202c620336201223012230122501326013260
+010a01000c6700b6700c6700d6700e67010670116701767015670176700c670196701a6501e67017640216600b66024650276502a6402c6402d6302e6302f620316202c620336201223012230122501326013260
 0114010027010261202522023320224202152022620227202204022120202201e32017430135301a6401d74023040251402624028340314502d5502b6502575024050270502a250293502445026550296602b760
-011d00001d0501c050040500c0501c0500c0501d0501c050040500c0501c0500c0501d0501c050040500c0501c0500c0501d0501c050040500c0501c0500c0501d0501c050040500c0501c0500c0500405004050
+011e00001d0521c052040520c0521c0520c0521d0521c052040520c0521c0520c0521d0521c052040520c0521c0520c0521d0521c052040520c0521c0520c0521d0521c052040520c0521c0520c0520405204052
+001e00001155211552045520c5521c5520c5521d5521c552045520c5521c5520c5521d5521c552045520c5521c5520c5521d5521c552045520c5521c5520c5521d5521c552045520c5521c5520c5520455204552
 __music__
-02 03414244
-00 00424344
+03 04444444
+03 03424344
 00 41424344
-00 03424344
-00 41424344
+00 43424344
+00 46424344
 00 41424344
 00 41424344
 00 41424344
