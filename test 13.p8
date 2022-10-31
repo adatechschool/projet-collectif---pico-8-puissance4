@@ -103,21 +103,21 @@ o_sprite+=1
 end
 
 function update_menu()
-   if btnp(5,0) then
+   if btnp(5) then
        scene="game"
     end
 end
 
 function update_game()
+	if btnp(5) then
+       scene="menu"
+ end           
 	update_p1()
 	update_p2()
 end	
 
 
 function update_p1()
- if btnp(5,0) then
-       scene="menu"
- end
  if btnp(0,0) then
   if p1.c > 1 then
    			p1.c -=1
@@ -181,9 +181,6 @@ end
 end
 
 function update_p2()
- if btnp(5,1) then
-       scene="menu"
- end
  if btnp(0,1) then
    if p2.c > 1 then
    			p2.c -=1
@@ -269,13 +266,14 @@ function draw_menu()
 	spr(3,56,30)
 	spr(4,64,30)
 	spr(5,72,30)
-	print("press 'enter' to start",20,60,7)
+	print("press 'enter' to start\n and 'space' to pause",20,60,7)
 
 -- affichage players et touches :
-	spr(73,80,90)
-	print ("⬅️⬆️⬇️➡️ maj",65,102,7)
-	spr(89,30,90)
-	print ("qzws maj",20,102,7) 
+print ("bouger:\n poser:",4,102)
+	spr(73,90,90)
+	print ("⬅️➡️\n ⬇️",90,102,7)
+	spr(89,40,90)
+	print ("ae\n z",40,102,7) 
 end
  
 function draw_game() --affichage jardins et buildings
@@ -300,6 +298,7 @@ function draw_animated_win()
 spr(br_sprite,50,50)
 spr(av_sprite,58,50)
 spr(o_sprite,66,50)
+print("press 'maj' to play again",10,100)
 end
 
 ---- player 1
@@ -320,8 +319,8 @@ function animated_p1()
 end
 
 function animated_win_p1() 
- local x =60
- local y =85
+ local x =58
+ local y =65
  spr (w1_sprite,x,y) 
 end
 
@@ -343,8 +342,8 @@ function animated_p2()
 end
 
 function animated_win_p2() 
- local x =60
- local y =85
+ local x =58
+ local y =65
  spr (w2_sprite,x,y) 
 end
 
@@ -362,6 +361,9 @@ function win_p1()
 	animated_win_p1()
 	draw_animated_win()
 	reboot_p1()
+	if btnp(4,0) or btnp(4,1) then
+ run()
+ end  
 end
 
 
