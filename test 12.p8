@@ -18,6 +18,23 @@ end
 
 local cs = 128/7
 
+--local der_case
+
+local br={}
+x =50
+y =50
+br_sprite=164
+
+local av={}
+x =58
+y =50
+av_sprite=166
+
+local o={}
+x =66
+y =50
+o_sprite=168
+
 local w1={}
 x = 60
 y = 85
@@ -49,11 +66,7 @@ scene="menu"
 end
 
 
---function init_animated_win()
---t,f,s=32,32,4 --tick,frame,step
---sp = {6,10}
---sp={6,7,8,9,22,23,24,25,38,39,40,41,54,55,56,57,10,11,12,13,26,27,28,29,42,43,44,45,58,59,60,61} --sprites
---end
+
 
 
 
@@ -71,12 +84,23 @@ w1_sprite+=1*(timing*4)
 	if w1_sprite > 137 then
 	w1_sprite = 132
 	end
-w2_sprite+=1*(timing*4)
+w2_sprite+=1
 	if w2_sprite > 153 then
 	w2_sprite = 148
 	end	
+br_sprite+=1
+	if br_sprite > 165 then
+	br_sprite = 164
+	end
+av_sprite+=1
+	if av_sprite > 167 then
+	av_sprite = 166
+	end
+o_sprite+=1
+	if o_sprite > 169 then
+	o_sprite = 168
+	end
 end
-
 
 function update_menu()
    if btnp(5,0) then
@@ -87,14 +111,7 @@ end
 function update_game()
 	update_p1()
 	update_p2()
---	update_animated_win()
 end	
-
---v2 animated win : 
---function update_animated_win()
---t=(t+1)%s --tick fwd
--- if (t==0) f=f%#sp+1
---end
 
 
 function update_p1()
@@ -118,6 +135,7 @@ function update_p1()
    			p2_playing=true
    			sfx(-1)
    			sfx (6,0)
+   			
   elseif grid[6][p1.c] == 0 and p1_playing==true then
      grid[6][ p1.c] = 1
   			 p1_playing=false
@@ -167,15 +185,15 @@ function update_p2()
        scene="menu"
  end
  if btnp(0,1) then
-  if p2.c > 1 then
+   if p2.c > 1 then
    			p2.c -=1
   end
  end
 	if btnp(1,1) then
-  if p2.c < 7 then
+ if p2.c < 7 then
     		p2.c +=1
   end
- end
+end
  if btnp(3,1) then
  	if grid[7][p2.c] == 0 and p2_playing==true then
   			 grid[7][p2.c] = 2
@@ -203,8 +221,8 @@ elseif grid[6][p2.c] == 0 and p2_playing==true then
    			sfx (2,0)
  elseif grid[3][p2.c] == 0 and p2_playing==true then
      grid[3][p2.c] = 2
-  			 p1_playing=false
-   			p2_playing=true
+  			 p2_playing=false
+   			p1_playing=true
    			sfx(-1)
    			sfx (2,0)
   elseif grid[2][p2.c] == 0 and p2_playing==true then
@@ -243,13 +261,25 @@ winner_p1()
 winner_p2()    
 end
 
---function draw_animated_win()
---spr(sp[f],50,50)
---end
-    
-function draw_game()
+function draw_menu()
+	cls()   
+-- affichage logo et consigne :
+	spr(1,40,30)
+	spr(2,48,30)
+	spr(3,56,30)
+	spr(4,64,30)
+	spr(5,72,30)
+	print("press 'enter' to start",20,60,7)
+
+-- affichage players et touches :
+	spr(73,80,90)
+	print ("⬅️⬆️⬇️➡️ maj",65,102,7)
+	spr(89,30,90)
+	print ("qzws maj",20,102,7) 
+end
+ 
+function draw_game() --affichage jardins et buildings
  cls()
---affichage jardins et buildings
  for l=2,7 do
   for c=1,7 do
   local x = (c-1)*cs
@@ -261,16 +291,27 @@ function draw_game()
    	spr(238, x+2, y+2,2,2) --- buildings
    end
   end
-  end
-  
--- affichage tour player :
--- print("play !",55,116,7) 
--- if p2_playing==true then spr (89,45,115)
---		elseif p1_playing==true then spr (73,45,115)
---	end
-
+ end 
  animated_p1()
- animated_p2()
+ animated_p2() 
+end
+
+function reboot_p1()
+for l=1,7 do
+ grid[l] = {}
+ for c=1,7 do
+  grid[l][c] =1
+ end
+end
+end
+
+function reboot_p2()
+for l=1,7 do
+ grid[l] = {}
+ for c=1,7 do
+  grid[l][c] =2
+ end
+end
 end
 
 function animated_p1()
@@ -281,7 +322,7 @@ end
 
 function animated_p2() 
  local x = ( p2.c-1)*cs
- local y = ( p2.c-1)*cs
+ local y = ( p2.l-1)*cs
  spr (p2_sprite,x+6,y+6) 
 end
 
@@ -299,93 +340,204 @@ function animated_win_p2()
  spr (w2_sprite,x,y) 
 end
 
------
-function draw_menu()
-	cls()   
--- affichage logo et consigne :
-	spr(1,40,30)
-	spr(2,48,30)
-	spr(3,56,30)
-	spr(4,64,30)
-	spr(5,72,30)
-	print("press 'enter' to start",20,60,7)
-
--- affichage players et touches :
-	spr(73,80,90)
-	print ("⬅️⬆️⬇️➡️ maj",65,102,7)
-	spr(89,30,90)
-	print ("qzws maj",20,102,7) 
-
--- affichage selection player
---	rect(27,87,40,100,3)
+function draw_animated_win()
+spr(br_sprite,50,50)
+spr(av_sprite,58,50)
+spr(o_sprite,66,50)
 end
 
+-----
+
+
+
+-->8
+-- win 
+
+-----player 1
+
+function win_p1()
+	cls()
+	animated_win_p1()
+	draw_animated_win()
+	reboot_p1()
+end
+
+
 function winner_p1()
---- si ligne remplie - win
+
 	for l=2,7 do
 		if grid[l][7]==1
 			and grid[l][6]==1  
 			and grid[l][5]==1
 			and grid[l][4]==1 then
-				cls()
-				animated_win_p1()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p1()
 		elseif grid[l][6]==1  
 			and grid[l][5]==1
 			and grid[l][4]==1
 			and grid[l][3]==1 then
-				cls()
-				animated_win_p1()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p1()
 		elseif grid[l][5]==1
 			and grid[l][4]==1
 			and grid[l][3]==1
 			and grid[l][2]==1 then
-				cls()
-				animated_win_p1()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p1()
 		elseif grid[l][4]==1
 			and grid[l][3]==1
 			and grid[l][2]==1
 			and grid[l][1]==1  then
-				cls()
-					animated_win_p1()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p1()
 		end 
 	end
------ si colonne remplie - win
 	for c=1,7 do
 		if  grid[2][c]==1  
 			and grid[3][c]==1
 			and grid[4][c]==1 
 			and grid[5][c]==1 then
-				cls()
-				animated_win_p1()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p1()
 		elseif grid[3][c]==1
 			and grid[4][c]==1 
 			and grid[5][c]==1
 			and grid[6][c]==1 then
-				cls()
-				animated_win_p1()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
-elseif			grid[4][c]==1
+				win_p1()
+		elseif			grid[4][c]==1
 			and grid[5][c]==1  
 			and grid[6][c]==1
 			and grid[7][c]==1 then
-				cls()
-				animated_win_p1()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p1()
 		end
 	end
+if grid[7][p1.c]==1
+        and grid[6][p1.c+1]==1
+        and grid[5][p1.c+2]==1
+        and grid[4][p1.c+3]==1	then
+            win_p1()
+    elseif grid[6][p1.c]==1
+        and grid[5][p1.c+1]==1
+        and grid[4][p1.c+2]==1
+        and grid[3][p1.c+3]==1	then
+            win_p1() 
+    elseif grid[5][p1.c]==1
+        and grid[4][p1.c+1]==1
+        and grid[3][p1.c+2]==1
+        and grid[2][p1.c+3]==1	then
+            win_p1() 	
+    elseif grid[7][p1.c]==1
+        and grid[6][p1.c-1]==1
+        and grid[5][p1.c-2]==1
+        and grid[4][p1.c-3]==1	then
+            win_p1()
+    elseif grid[6][p1.c]==1
+        and grid[5][p1.c-1]==1
+        and grid[4][p1.c-2]==1
+        and grid[3][p1.c-3]==1	then
+            win_p1() 
+    elseif grid[5][p1.c]==1
+        and grid[4][p1.c-1]==1
+        and grid[3][p1.c-2]==1
+        and grid[2][p1.c-3]==1	then
+            win_p1() 
+    elseif grid[2][p1.c]==1
+        and grid[3][p1.c-1]==1
+        and grid[4][p1.c-2]==1
+        and grid[5][p1.c-3]==1	then
+            win_p1()
+    elseif grid[3][p1.c]==1
+        and grid[4][p1.c-1]==1
+        and grid[5][p1.c-2]==1
+        and grid[6][p1.c-3]==1	then
+            win_p1() 
+    elseif grid[4][p1.c]==1
+        and grid[5][p1.c-1]==1
+        and grid[6][p1.c-2]==1
+        and grid[7][p1.c-3]==1	then
+            win_p1()
+    elseif grid[2][p1.c]==1
+        and grid[3][p1.c+1]==1
+        and grid[4][p1.c+2]==1
+        and grid[5][p1.c+3]==1	then
+            win_p1()
+    elseif grid[3][p1.c]==1
+        and grid[4][p1.c+1]==1
+        and grid[5][p1.c+2]==1
+        and grid[6][p1.c+3]==1	then
+            win_p1()
+    elseif grid[4][p1.c]==1
+        and grid[5][p1.c+1]==1
+        and grid[6][p1.c+2]==1
+        and grid[7][p1.c+3]==1	then
+            win_p1()
+     elseif grid[3][p1.c]==1
+        and grid[2][p1.c-1]==1
+        and grid[4][p1.c+1]==1
+        and grid[5][p1.c+2]==1	then
+            win_p1()
+    elseif grid[4][p1.c]==1
+        and grid[3][p1.c-1]==1
+        and grid[5][p1.c+1]==1
+        and grid[6][p1.c+2]==1	then
+            win_p1()
+    elseif grid[5][p1.c]==1
+        and grid[4][p1.c-1]==1
+        and grid[6][p1.c+1]==1
+        and grid[7][p1.c+2]==1	then
+            win_p1()
+    elseif grid[4][p1.c]==1
+        and grid[3][p1.c-1]==1
+        and grid[2][p1.c-2]==1
+        and grid[5][p1.c+1]==1	then
+            win_p1() 
+        elseif grid[5][p1.c]==1
+        and grid[4][p1.c-1]==1
+        and grid[3][p1.c-2]==1
+        and grid[6][p1.c+1]==1	then
+            win_p1()
+    elseif grid[6][p1.c]==1
+        and grid[5][p1.c-1]==1
+        and grid[4][p1.c-2]==1
+        and grid[7][p1.c+1]==1	then
+            win_p1()
+    elseif grid[4][p1.c]==1
+        and grid[5][p1.c-1]==1
+        and grid[3][p1.c+1]==1
+        and grid[2][p1.c+2]==1	then
+            win_p1()
+    elseif grid[5][p1.c]==1
+        and grid[6][p1.c-1]==1
+        and grid[4][p1.c+1]==1
+        and grid[3][p1.c+2]==1	then
+            win_p1()  
+elseif grid[6][p1.c]==1
+        and grid[7][p1.c-1]==1
+        and grid[5][p1.c+1]==1
+        and grid[4][p1.c+2]==1	then
+            win_p1()
+elseif grid[5][p1.c]==1
+        and grid[6][p1.c-1]==1
+        and grid[7][p1.c+2]==1
+        and grid[4][p1.c+1]==1	then
+            win_p1()
+elseif grid[4][p1.c]==1
+        and grid[5][p1.c-1]==1
+        and grid[6][p1.c+2]==1
+        and grid[3][p1.c+1]==1	then
+            win_p1()
+elseif grid[3][p1.c]==1
+        and grid[4][p1.c-1]==1
+        and grid[5][p1.c+2]==1
+        and grid[2][p1.c+1]==1	then
+            win_p1()   						 		 		 		
 end
+end
+
+-- player 2
+
+function win_p2()
+	cls()
+	animated_win_p2()
+	draw_animated_win()
+	reboot_p2()
+end
+
 
 function winner_p2()
 	for l=2,7 do
@@ -393,34 +545,22 @@ function winner_p2()
 			and grid[l][6]==2  
 			and grid[l][5]==2
 			and grid[l][4]==2 then
-				cls()
-			animated_win_p2()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p2()
 		elseif grid[l][6]==2  
 			and grid[l][5]==2
 			and grid[l][4]==2
 			and grid[l][3]==2 then
-				cls()
-				animated_win_p2()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p2()
 		elseif grid[l][5]==2
 			and grid[l][4]==2
 			and grid[l][3]==2
 			and grid[l][2]==2 then
-				cls()
-					animated_win_p2()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p2()
 		elseif grid[l][4]==2
 			and grid[l][3]==2
 			and grid[l][2]==2
 			and grid[l][1]==2  then
-				cls()
-				animated_win_p2()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p2()
 		end 
 	end
 	for c=1,7 do
@@ -428,29 +568,143 @@ function winner_p2()
 			and grid[3][c]==2
 			and grid[4][c]==2 
 			and grid[5][c]==2 then
-				cls()
-				animated_win_p2()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p2()
 		elseif grid[3][c]==2
 			and grid[4][c]==2 
 			and grid[5][c]==2
 			and grid[6][c]==2 then
-				cls()
-				animated_win_p2()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p2()
 		elseif grid[4][c]==2
 			and grid[5][c]==2  
 			and grid[6][c]==2
 			and grid[7][c]==2 then
-				cls()
-				animated_win_p2()
-				spr(6,50,50,4,4)
-				--	draw_animated_win()
+				win_p2()
 		end
 	end
+	if grid[7][p2.c]==2
+				and grid[6][p2.c+1]==2
+				and grid[5][p2.c+2]==2
+				and grid[4][p2.c+3]==2	then
+					win_p2()
+			elseif grid[6][p2.c]==2
+				and grid[5][p2.c+1]==2
+				and grid[4][p2.c+2]==2
+				and grid[3][p2.c+3]==2	then
+					win_p2()
+			elseif grid[5][p2.c]==2
+				and grid[4][p2.c+1]==2
+				and grid[3][p2.c+2]==2
+				and grid[2][p2.c+3]==2	then
+					win_p2() 	
+			elseif grid[7][p2.c]==2
+				and grid[6][p2.c-1]==2
+				and grid[5][p2.c-2]==2
+				and grid[4][p2.c-3]==2	then
+					win_p2()
+			elseif grid[6][p2.c]==2
+				and grid[5][p2.c-1]==2
+				and grid[4][p2.c-2]==2
+				and grid[3][p2.c-3]==2	then
+					win_p2() 
+			elseif grid[5][p2.c]==2
+				and grid[4][p2.c-1]==2
+				and grid[3][p2.c-2]==2
+				and grid[2][p2.c-3]==2	then
+					win_p2() 
+			elseif grid[2][p2.c]==2
+				and grid[3][p2.c-1]==2
+				and grid[4][p2.c-2]==2
+				and grid[5][p2.c-3]==2	then
+					win_p2()
+			elseif grid[3][p2.c]==2
+				and grid[4][p2.c-1]==2
+				and grid[5][p2.c-2]==2
+				and grid[6][p2.c-3]==2	then
+					win_p2() 
+			elseif grid[4][p2.c]==2
+				and grid[5][p2.c-1]==2
+				and grid[6][p2.c-2]==2
+				and grid[7][p2.c-3]==2	then
+					win_p2()
+			elseif grid[2][p2.c]==2
+				and grid[3][p2.c+1]==2
+				and grid[4][p2.c+2]==2
+				and grid[5][p2.c+3]==2	then
+					win_p2()
+			elseif grid[3][p2.c]==2
+				and grid[4][p2.c+1]==2
+				and grid[5][p2.c+2]==2
+				and grid[6][p2.c+3]==2	then
+					win_p2() 
+			elseif grid[4][p2.c]==2
+				and grid[5][p2.c+1]==2
+				and grid[6][p2.c+2]==2
+				and grid[7][p2.c+3]==2	then
+					win_p2()
+					elseif grid[3][p2.c]==2
+				and grid[2][p2.c-1]==2
+				and grid[4][p2.c+1]==2
+				and grid[5][p2.c+2]==2	then
+					win_p2()
+			elseif grid[4][p2.c]==2
+				and grid[3][p2.c-1]==2
+				and grid[5][p2.c+1]==2
+				and grid[6][p2.c+2]==2	then
+					win_p2()
+			elseif grid[5][p2.c]==2
+				and grid[4][p2.c-1]==2
+				and grid[6][p2.c+1]==2
+				and grid[7][p2.c+2]==2	then
+					win_p2()
+			elseif grid[4][p2.c]==2
+				and grid[3][p2.c-1]==2
+				and grid[2][p2.c-2]==2
+				and grid[5][p2.c+1]==2	then
+					win_p2() 
+				elseif grid[5][p2.c]==2
+				and grid[4][p2.c-1]==2
+				and grid[3][p2.c-2]==2
+				and grid[6][p2.c+1]==2	then
+					win_p2()
+			elseif grid[6][p2.c]==2
+				and grid[5][p2.c-1]==2
+				and grid[4][p2.c-2]==2
+				and grid[7][p2.c+1]==2	then
+					win_p2()
+			elseif grid[4][p2.c]==2
+				and grid[5][p2.c-1]==2
+				and grid[3][p2.c+1]==2
+				and grid[2][p2.c+2]==2	then
+					win_p2()
+			elseif grid[5][p2.c]==2
+				and grid[6][p2.c-1]==2
+				and grid[4][p2.c+1]==2
+				and grid[3][p2.c+2]==2	then
+					win_p2()  
+		elseif grid[6][p2.c]==2
+				and grid[7][p2.c-1]==2
+				and grid[5][p2.c+1]==2
+				and grid[4][p2.c+2]==2	then
+					win_p2()
+		elseif grid[5][p2.c]==2
+				and grid[6][p2.c-1]==2
+				and grid[7][p2.c+2]==2
+				and grid[4][p2.c+1]==2	then
+					win_p2()
+	elseif grid[4][p2.c]==2
+				and grid[5][p2.c-1]==2
+				and grid[6][p2.c+2]==2
+				and grid[3][p2.c+1]==2	then
+					win_p2()
+		elseif grid[3][p2.c]==2
+				and grid[4][p2.c-1]==2
+				and grid[5][p2.c+2]==2
+				and grid[2][p2.c+1]==2	then
+					win_p2()  						 		 		 		
+	end
 end
+
+
 -->8
 -- old
 
@@ -459,6 +713,13 @@ end
 --	if w_sprite >10 then
 --							w_sprite =6
 --			end  
+
+-- affichage tour player :
+-- print("play !",55,116,7) 
+-- if p2_playing==true then spr (89,45,115)
+--		elseif p1_playing==true then spr (73,45,115)
+--	end
+
 
 --function _init()
 --	 scene="menu"
@@ -666,10 +927,10 @@ __gfx__
 0000000000000000000000000000000000daaad000daaad000daaad000daaad00daaad000daaad00000000000000000000000000000000000000000000000000
 000000000000000000000000000000000000a0000000a0000000a0000000a000000a0000000a0000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000aaaeaea0aaaeaea000aeaea000aeaea00aeaeaaa0aeaeaaa000000000000000000000000000000000000000000000000
-00000000000000000000000000000000080eeea0000eeea000aeeea000aeeea00aeee0000aeee080000000000000000000000000000000000000000000000000
-0000000000000000000000000000000008eeeea0000eeea000aeeea000aeeea00aeee0000aeeee80000000000000000000000000000000000000000000000000
-0000000000000000000000000000000000000e00000e0e00000e0e00000e0e0000e0e00000e00000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000008800088088000880880008808800880880008800000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000eeea0080eeea000aeeea000aeeea00aeee0800aeee000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000eeea008eeeea000aeeea000aeeea00aeeee800aeee000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000e0e0000000e00000e0e00000e0e0000e0000000e0e000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000008808800000088000880880008808800880000008808800000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000ddddd000ddddd000ddddd00ddddd000ddddd000ddddd00000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000daaad000daaad000daaad00daaad000daaad000daaad00000000000000000000000000000000000000000000000000
 000000000000000000000000000000000000a0000000a0000000a000000a0000000a0000000a0000000000000000000000000000000000000000000000000000
@@ -680,11 +941,11 @@ __gfx__
 00000000000000000000000000000000000005500055055000550550055055000550550005500000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000007770770055505570777070505550507077700750555005000000000000000000000000000000000000000000000000
+00000000000000000000000000000000007070700050505070707070505050507070700750505005000000000000000000000000000000000000000000000000
+00000000000000000000000000000000007700770055005500777070005550507070700750505005000000000000000000000000000000000000000000000000
+00000000000000000000000000000000007070700050505070707070505050507070700050505000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000007770700055505070707007505050050077700700555005000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
