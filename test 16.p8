@@ -7,8 +7,29 @@ __lua__
 -- gestion alternance menu-jeu
 
 function _init()
-music(4,0)
-scene="menu"
+player_start()
+music(6,0,0)
+scene = "prologue"
+reading=false
+win = false
+end
+
+function tb_init(voice,string)
+   reading=true -- sets reading to true when a text box has been called.
+   tb={ -- table containing all properties of a text box. i like to work with tables, but you could use global variables if you preffer.
+    str=string, -- the strings. remember: this is the table of strings you passed to this function when you called on _update()
+    voice=voice, -- the voice. again, this was passed to this function when you called it on _update()
+    i=1, -- index used to tell what string from tb.str to read.
+    cur=0, -- buffer used to progressively show characters on the text box.
+    char=0, -- current character to be drawn on the text box.
+    x=0, -- x coordinate
+    y=25, -- y coordginate
+    w=100, -- text box width
+    h=100, -- text box height
+    col1=0, -- background color
+    col2=7, -- border color
+    col3=7, -- text color
+   }
 end
 
 timing = 0.1
@@ -62,7 +83,7 @@ local p2 = {}
 p2.c = 1
 p2.l = 1
 p2_sprite = 146
-p2_playing = false -- (pourrait etre true, ca sera gere plus tard)
+p2_playing = true
 
 -- creation variables game 2
 
@@ -84,21 +105,38 @@ local p2m = {}
 p2m.cm = 1
 p2m.lm = 7
 p2m_sprite = 146
-p2m_playing = false
+p2m_playing = true
 
-
-
-
-
+function sound_win ()
+if win == true then 
+sfx(8)
+end
+end
 -->8
 -- update
 --(appelee 30 fois/sec) 
 
 function _update()
-	if scene=="menu" then
+if scene == "prologue" then
+	if reading then -- if tb_init has been called, reading will be true and a text box is being displayed to the player. it is important to do this check here because that way you can easily separete normal game actions to text box inputs.
+        tb_update() -- handle the text box on every frame update.
+    if (btnp(⬇️)) then
+     scene = "menu"
+     music(-1)
+     music(4)
+  end
+    else
+        if (btnp(1)) tb_init(0,{"a adaville, un promoteur et un\npaysagiste sont tous deux con-\nvaincus d'avoir la solution\npour une ville durable.\ndepuis, ils menent une course\nsans fin pour transformer les\nterrains vagues en jardins\npartages ou immeubles.\n➡️","le premier a aligner 4 terrains\naura gagne la bataille !\n⬇️"})
+     if (btnp(⬇️)) then
+      scene = "menu"
+       music(-1)
+     music(4)
+    end
+    end    
+	elseif scene=="menu" then
 	 update_menu()
 	elseif scene=="game1" then
-	 update_game1()
+	 update_game1()	 
 	elseif scene=="game2" then
 	 update_game2()
 	end
@@ -127,23 +165,75 @@ end
 function update_menu()
    if btnp(5) then
     scene="game1"
+    sfx(9)
     elseif btnp(4) then 
      scene="game2"
+     sfx(9)
     end
 end
 
+function tb_update()  -- this function handles the text box on every frame update.
+    if tb.char<#tb.str[tb.i] then -- if the message has not been processed until it's last character:
+        tb.cur+=0.5 -- increase the buffer. 0.5 is already max speed for this setup. if you want messages to show slower, set this to a lower number. this should not be lower than 0.1 and also should not be higher than 0.9
+        if tb.cur>0.9 then -- if the buffer is larger than 0.9:
+            tb.char+=1 -- set next character to be drawn.
+            tb.cur=0    -- reset the buffer.
+            if (ord(tb.str[tb.i],tb.char)!=32) sfx(5,0) -- play the voice sound effect.
+        end
+        if (btnp(1)) tb.char=#tb.str[tb.i] -- advance to the last character, to speed up the message.
+    elseif btnp(1) then
+     -- if already on the last message character and button ❎/x is pressed:
+        if #tb.str>tb.i then -- if the number of strings to disay is larger than the current index (this means that there's another message to display next):
+            tb.i+=1 -- increase the index, to display the next message on tb.str
+            tb.cur=0 -- reset the buffer.
+            tb.char=0 -- reset the character position.
+        else -- if there are no more messages to display:
+            reading=false -- set reading to false. this makes sure the text box isn't drawn on screen and can be used to resume normal gameplay.
+        end
+    end
+end
+
+function reboot_grids()
+if scene == "game1" then
+  for l=1,7 do
+ grid[l] = {}
+ for c=1,7 do
+  grid[l][c] =0
+  end
+  end
+elseif scene == "game2" then
+ for lm=1,7 do
+ gridm[lm] = {}
+ for cm=1,7 do
+  gridm[lm][cm] =0
+ end
+end
+end
+end
+
+function player_start()
+	if flr(rnd(2))==1
+	then
+	 p1_playing = false
+	 p1m_playing = false
+	else
+		p2_playing = false
+		p2m_playing = false
+	end
+end
 
 -->8
 -- update game 1
 
 function update_game1()
 	if btnp(5,1) then
-       scene="menu"
+    scene="menu"
+    reboot_grids() 
+    sfx(9)    
  end           
 	update_p1()
-	update_p2()
-end	
-
+	update_p2()	
+	end
 
 function update_p1()
  if btnp(0,0) then
@@ -163,49 +253,49 @@ function update_p1()
   		p1_playing=false
    	p2_playing=true
    	sfx(-1)
-   	sfx (6,0)
+   	sfx (6)
 		 elseif grid[6][p1.c] == 0
 		  and p1_playing==true then
 	    grid[6][ p1.c] = 1
 	  		p1_playing=false
 	   	p2_playing=true
 	   	sfx(-1)
-	   	sfx (6,0)
+	   	sfx (6)
 	  elseif grid[5][p1.c] == 0
 	   and p1_playing==true then
 	    grid[5][ p1.c] = 1
 	  		p1_playing=false
 	   	p2_playing=true
 	   	sfx(-1)
-	   	sfx (6,0)
+	   	sfx (6)
 	  elseif grid[4][p1.c] == 0
 	   and p1_playing==true then
 	    grid[4][ p1.c] = 1
 	  	 p1_playing=false
 	   	p2_playing=true
 	   	sfx(-1)
-	   	sfx (6,0)
+	   	sfx (6)
 		 elseif grid[3][p1.c] == 0
 		  and p1_playing==true then
 		   grid[3][ p1.c] = 1
 		   p1_playing=false
 		   p2_playing=true
 		   sfx(-1)
-		   sfx (6,0)
+		   sfx (6)
 	  elseif grid[2][p1.c] == 0
 	   and p1_playing==true then
 	    grid[2][ p1.c] = 1
 	  		p1_playing=false
 	   	p2_playing=true
 	   	sfx(-1)
-	   	sfx (6,0)  
+	   	sfx (6)  
 		end
 	end
  if p1_playing==true then
  	p1_sprite+=1*(timing*4)
-	 else if p1_playing==false then
- 		p1_sprite+=1*timing
-		end 
+	 else if p1_playing==false then		
+ 		p1_sprite=132
+ end
  end
 	if p1_sprite > 135 then
 		p1_sprite = 130
@@ -229,49 +319,50 @@ end
   			 p2_playing=false
    			p1_playing=true
    			sfx(-1)
-   			sfx (2,0)
+   			sfx(2)
 elseif grid[6][p2.c] == 0 and p2_playing==true then
      grid[6][p2.c] = 2
   			 p2_playing=false
    			p1_playing=true
    			sfx(-1)
-   			sfx (2,0)
+   			sfx(2)
   elseif grid[5][p2.c] == 0 and p2_playing==true then
      grid[5][p2.c] = 2
   			p2_playing=false
    			p1_playing=true
    			sfx(-1)
-   			sfx (2,0)
+   			sfx (2)
   elseif grid[4][p2.c] == 0 and p2_playing==true then
      grid[4][p2.c]= 2
   			 p2_playing=false
    			p1_playing=true
    			sfx(-1)
-   			sfx (2,0)
+   			sfx (2)
  elseif grid[3][p2.c] == 0 and p2_playing==true then
      grid[3][p2.c] = 2
   			 p2_playing=false
    			p1_playing=true
    			sfx(-1)
-   			sfx (2,0)
+   			sfx (2)
   elseif grid[2][p2.c] == 0 and p2_playing==true then
      grid[2][p2.c] = 2
   			p2_playing=false
    			p1_playing=true
    			sfx(-1)
-   			sfx (2,0)
+   			sfx (2)
   end
  end
    
  if p2_playing==true then
  	p2_sprite+=1*(timing*4) 
  else if p2_playing==false then
- 	p2_sprite+=1*timing
+ 	p2_sprite=148
+
  end
  end
  
 if p2_sprite > 151 then
-						p2_sprite =146
+						p2_sprite =146 
 		end  
 end
 
@@ -613,6 +704,9 @@ end
 function update_game2()
  if btnp(5,1) then
        scene="menu"
+       reboot_grids()
+       win =false
+       sfx(9)
  end
 	update_p1m()
 	update_p2m()
@@ -646,14 +740,13 @@ function update_p1m()
   			 gridm[p1m.lm][ p1m.cm] = 1
   			 p1m_playing=false
    			p2m_playing=true
-   			sfx(-1)
-   			sfx (6,0)
+   			sfx (6)
   end
  end
  if p1m_playing==true then
  	p1m_sprite+=1*(timing*4)
  else if p1m_playing==false then
- 	p1m_sprite+=1*timing
+ 	p1m_sprite=132
  end
  end
 	if p1m_sprite > 135 then
@@ -689,14 +782,13 @@ function update_p2m()
    		gridm[p2m.lm][ p2m.cm] = 2
    		p1m_playing=true
    		p2m_playing=false
-   		sfx(-1)
-   		sfx (2,0)    
+   		sfx (2)    
   end
  end 
  if p2m_playing==true then
  	p2m_sprite+=1*(timing*4) 
  	elseif p2m_playing==false then
- 		p2m_sprite+=1*timing
+ 		p2m_sprite=148
  end 
 	if p2m_sprite > 151 then
 		p2m_sprite =146
@@ -869,6 +961,26 @@ function winner_p1m()
   and gridm[4][p1m.cm-1]==1
   and gridm[5][p1m.cm+2]==1
   and gridm[2][p1m.cm+1]==1	then
+   win_p1()
+ elseif gridm[4][p1m.cm]==1
+  and gridm[3][p1m.cm+1]==1
+  and gridm[2][p1m.cm+2]==1
+  and gridm[1][p1m.cm+3]==1 then
+   win_p1() 
+  elseif gridm[4][p1m.cm]==1
+  and gridm[3][p1m.cm-1]==1
+  and gridm[2][p1m.cm-2]==1
+  and gridm[1][p1m.cm-3]==1 then
+   win_p1()
+  elseif gridm[1][p1m.cm]==1
+  and gridm[2][p1m.cm-1]==1
+  and gridm[3][p1m.cm-2]==1
+  and gridm[4][p1m.cm-3]==1 then
+   win_p1() 
+  elseif gridm[1][p1m.cm]==1
+  and gridm[2][p1m.cm+1]==1
+  and gridm[3][p1m.cm+2]==1
+  and gridm[4][p1m.cm+3]==1 then
    win_p1()   						 		 		 		
 	end
 end
@@ -1040,7 +1152,27 @@ function winner_p2m()
 		and gridm[4][p2m.cm-1]==2
 		and gridm[5][p2m.cm+2]==2
 		and gridm[2][p2m.cm+1]==2	then
-			win_p2()  						 		 		 		
+			win_p2()
+	elseif gridm[4][p2m.cm]==2
+		and gridm[3][p2m.cm+1]==2
+		and gridm[2][p2m.cm+2]==2
+		and gridm[1][p2m.cm+3]==2 then
+		 win_p2()
+		elseif gridm[4][p2m.cm]==2
+		and gridm[3][p2m.cm-1]==2
+		and gridm[2][p2m.cm-2]==2
+		and gridm[1][p2m.cm-3]==2 then
+		 win_p2()
+		elseif gridm[1][p2m.cm]==2
+		and gridm[2][p2m.cm-1]==2
+		and gridm[3][p2m.cm-2]==2
+		and gridm[4][p2m.cm-3]==2 then
+		 win_p2() 
+		elseif gridm[1][p2m.cm]==2
+		and gridm[2][p2m.cm+1]==2
+		and gridm[3][p2m.cm+2]==2
+		and gridm[4][p2m.cm+3]==2 then
+		 win_p2()		  						 		 		 		
 	end
 end
 
@@ -1049,8 +1181,14 @@ end
 --draw
 
 function _draw()
-  if scene=="menu" then
-   draw_menu()
+if scene =="prologue" then
+				cls(0)
+				rect(0,0,127,127,7)
+    local str="bienvenue a xo^4 ! ➡️"
+    print(str,2,10,7)
+    tb_draw() -- to draw text boxes, this function must be called. it is processed when reading is true, so there is no need to do a check here.
+  elseif scene=="menu" then
+   draw_menu() 
    elseif scene=="game1" then
     draw_game1()
     winner_p1()
@@ -1059,59 +1197,80 @@ function _draw()
     draw_game2()
     winner_p1m()
 				winner_p2m()
-  end   
+  end 
 end
 
-function draw_menu()
+function draw_menu()    
 	cls()   
-	spr(170,50,45,2,2) -- titre jeu
-	print("press ❎ to start puissance 4\n\n press w to start morpion",10,70,7)
+	spr(170,50,20,2,2) -- titre principal
+	spr (1,10,50,5,1) -- titre game 1
+	print("press ❎ to start",50,52,7)
+	spr (17,10,60,4,1) -- titre game 2
+	print("press w to start",50,62,7)	
+ print("    in game,\npress a for menu\npress p for pause",24,90,7)
 animated_win_p1()
 animated_win_p2()
 end	
  
 function draw_animated_win()
-spr(br_sprite,50,40)
-spr(av_sprite,58,40)
-spr(o_sprite,66,40)
-	if scene=="game1" then
-	print("press n to return to menu",15,100)
-	elseif scene=="game2" then
-	print("press ❎ to return to menu",15,100)
-	end
+win = true
+if scene == "game1" then
+rectfill (0,112,112,127,0)
+spr(br_sprite,21,115)
+spr(av_sprite,29,115)
+spr(o_sprite,37,115)
+print("a -> menu",75,117,7)
+else
+rectfill (0,115,112,127,0)
+spr(br_sprite,21,115)
+spr(av_sprite,29,115)
+spr(o_sprite,37,115)
+print("a -> menu",75,117,7)
 end
-
+end
+  
 function win_p1()
- if scene=="game1" then
-		reboot_p1()
-		cls()
+if btnp(3) then
+		sfx(8)
+end	
+if btnp(4)  then
+		sfx(8)
+		end
+	draw_animated_win()
 		animated_win_p1()
-		draw_animated_win()
+		reboot()
+ if scene=="game1" then	
 			if btnp(4) then
-		 run()
+		 run()	 
+		 music(4)
 		 end
 	elseif scene=="game2" then
-		cls()
-		draw_animated_win()
-		animated_win_p1()	
 		 if btnp(5) then
 		 run()
+		 music(4)
 		 end
  end  
 end
 
-function win_p2()
-	cls()
-	animated_win_p2()
+function win_p2()	
+if btnp(3,1) then
+		sfx(8)
+		end
+if btnp(4,1)  then
+		sfx(8)
+		end
 	draw_animated_win()
-	if scene=="game1" then
-	reboot_p2()
+	animated_win_p2()
+	reboot()
+	if scene=="game1" then	
 		if btnp(4) then
 		 run()
+		 music(4)
 		end
 	elseif scene=="game2" then
 	 if btnp(5) then
 	 run()
+	 music(4)
 	 end
 	end
 end
@@ -1119,15 +1278,15 @@ end
 function animated_win_p1() 
 if scene == "menu" then
 	local x =30
- local y =50
+ local y =24
  spr (w1_sprite,x,y)
 elseif scene == "game1" then
- local x =58
- local y =65
+ local x =4
+ local y =118
  spr (w1_sprite,x,y)
 elseif scene == "game2" then
- local x =58
- local y =65
+ local x =4
+ local y =118
  spr (w1_sprite,x,y) 
 end
 end
@@ -1135,35 +1294,35 @@ end
 function animated_win_p2() 
 if scene == "menu" then
 	local x =80
- local y =50
+ local y =24
  spr (w2_sprite,x,y)
 elseif scene == "game1" then
- local x =58
- local y =65
+ local x =4
+ local y =118
  spr (w2_sprite,x,y)
 elseif scene == "game2" then
- local x =58
- local y =65
+ local x =4
+ local y =118
  spr (w2_sprite,x,y)
  end 
 end
 
-function reboot_p1()
-for l=1,7 do
- grid[l] = {}
- for c=1,7 do
-  grid[l][c] =1
- end
-end
+function reboot()
+	if scene == "game1" then
+		p1_playing=false
+		p2_playing=false
+	elseif scene == "game2"then
+		p1m_playing=false
+		p2m_playing=false
+		end
 end
 
-function reboot_p2()
-for l=1,7 do
- grid[l] = {}
- for c=1,7 do
-  grid[l][c] =2
- end
-end
+function tb_draw() -- this function draws the text box.
+    if reading then -- only draw the text box if reading is true, that is, if a text box has been called and tb_init() has already happened.
+       -- rectfill(tb.x,tb.y,tb.x+tb.w,tb.y+tb.h,tb.col1) -- draw the background.
+       -- rect(tb.x,tb.y,tb.x+tb.w,tb.y+tb.h,tb.col2) -- draw the border.
+        print(sub(tb.str[tb.i],1,tb.char),tb.x+2,tb.y+5,tb.col3) -- draw the text.
+    end
 end
 -->8
 -- draw game 1
@@ -1247,30 +1406,30 @@ function animated_p2m()
 end
 
 __gfx__
-00000000888888888888888888888888888888888888888800000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000877777777777777777777777777777777777777800000000000000000070000000000000000000000000000000000000000000000000000000000000
-00700700875575757575575577577577575575577577757800700070777070700700777077000000000000000000000000000000000000000000000000000000
-00077000875575757775775775757557575775577575757800700070707070700000707070000000000000000000000000000000000000000000000000000000
-00077000875775557577577577577575575775777555777800070700707070700000707077000000000000000000000000000000000000000000000000000000
-00700700875775557575575575757577575575577775757800007000707070700000770070000000000000000000000000000000000000000000000000000000
-00000000877777777777777777777777777777777777777800007000707070700000707070000000000000000000000000000000000000000000000000000000
-00000000888888888888888888888888888888888888888800007000777007000000707077000000000000000000000000000000000000000000000000000000
-00000000555555555555555555555555000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000555555555555555555555555000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000555555555555555555555555000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000888888888888888888888888000000000000000000000000000070000000000000000000000000000000000000000000000000000000000000000000
-00000000877777777777777777777778000000000000000007770070007000700707007077077700000000000000000000000000000000000000000000000000
-00000000875557755755575775575578000000000000000007070070007070770707707070070700000000000000000000000000000000000000000000000000
-00000000875757757757775775775778000000000000000007770070007070707707077077070700000000000000000000000000000000000000000000000000
-00000000875555755757575775575578000000000000000007070070007070700707007070077000000000000000000000000000000000000000000000000000
-00000000875775757757575775777578000000000000000007070070707070700707007070070700000000000000000000000000000000000000000000000000
-00000000875775755755575575575578000000000000000007070007070070700707007077070700000000000000000000000000000000000000000000000000
-00000000877777777777777777777778000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000888888888888888888888888000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000555555555556555555555555000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000555555555556555555555555000000000000000000000077707770777070007007000000000000000000000000000000000000000000000000000000
-00000000555555555556555555555555000000000000000000000070707070707070007007000000000000000000000000000000000000000000000000000000
-00000000555555555555555555555555000000000000000000000077007770770007070007000000000000000000000000000000000000000000000000000000
+00000000888888888888888888888888888888888880000000000000000000000000000000000000000000007070707088888888888888888888888800000000
+00000000877777777777777777777777777777777780000000000000000000000070000000000000000000000700707087777777777777777777777800000000
+00700700875575757575575577577555755755757780000000700070777070700700777077000000000000007070707787555775575557577557557800000000
+00077000875575757775775775757575757755755780000000700070707070700000707070000000000000000000700087575775775777577577577800000000
+00077000875775557577577577577575757757755780000000070700707070700000707077000000000000007777777787555575575757577557557800000000
+00700700875775557575575575757575755755775780000000007000707070700000770070000000000000000000700087577575775757577577757800000000
+00000000877777777777777777777777777777777780000000007000707070700000707070000000000000007700707087577575575557557557557800000000
+00000000888888888888888888888888888888888880000000007000777007000000707077000000000000000700700787777777777777777777777800000000
+00000000888888888888888888888888888888880000000000000000000000000000000000000000000000000000000088888888888888888888888800000000
+00000000877777777777777777777777777777780000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000875575575557555775557575557555780000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000875757575757555775757775757575780000000000000000000070000000000000000000000000000000000000000000000000000000000000000000
+00000000875777575757575775557575757575780000000007770070007000700707007077077700000000000000000000000000000000000000000000000000
+00000000875777575557577575777575557575780000000007070070007070770707707070070700000000000000000000000000000000000000000000000000
+00000000877777777777777777777777777777780000000007770070007070707707077077070700000000000000000000000000000000000000000000000000
+00000000888888888888888888888888888888880000000007070070007070700707007070077000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000007070070707070700707007070070700000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000007070007070070700707007077070700000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000077707770777070007007000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000070707070707070007007000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000000000000000000000000000077007770770007070007000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000070707070707000700007000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000070707070707000700000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000077707070777000700007000000000000000000000000000000000000000000000000000000
@@ -1389,22 +1548,25 @@ f3f4f5f6f7f8f9fafbfcfdfefff0f1f2f3f4f5f6f7f8f9fafbfcfdfefff0f1f2f3f4f5f6f7f8f9fa
 c3c4c5c6c7c8c9cacbcccdcecfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfc0c1c2c3c4c5c6c7c8c9cacb000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __sfx__
 001e07001d0621c000040620c0001c0620c0001d0621c000040620c0001c0620c0001d0621c000040620c0001c0620c0001d0621c000040620c0001c0620c0001d0621c000040620c0001c0620c0000406204000
-011e0800045420c5421c5420c5421d5421c542045420c5421d5421c542045420c5421c5420c542045420c5421c5420c5421d5421c542045420c5421c5420c5421d5421c542045420c5421c5420c5420454204542
-01280000182200c220182201122000200002000020000200242002420024200242000020000200002000020000200002000020000200002000020000200002000020000200002000020000200002000020000200
-011e000027010261202522023320224202152022620227202204022120202201e32017430135301a6401d74023040251402624028340314502d5502b6502575024050270502a250293502445026550296602b760
-011e00001d0001c052040000c0521c0000c0521d0001c052040000c0521c0000c0521d0001c052040000c0521c0000c0521d0001c052040000c0521c0000c0521d0001c052040000c0521c0000c0520400004052
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-01100000241600c160241603016030100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100
+011e0800045320c5321c5320c5321d5321c532045320c5321d5321c532045320c5321c5320c532045320c5321c5320c5321d5321c532045320c5321c5320c5321d5321c532045320c5321c5320c5320453204532
+012800001811011110001000010000100001002410024100241002410000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000010000100
+011e000027030261302523023330224302153022630227302203022130202301e33017430135301a6301d73023030251302623028330314302d5302b6302573024030270302a230293302443026530296302b730
+011e00001d0001c032040000c0321c0000c0321d0001c032040000c0321c0000c0321d0001c032040000c0321c0000c0321d0001c032040000c0321c0000c0321d0001c032040000c0321c0000c0320400004032
+01100000067350673506735000051030514705127051470516705147050f705147050e70514705127051470516705147050f705147050e70514705127051470516705147050f7050e70500005000050000500005
+011000002a7102e710127002a7002c7002e7000010000100001000010000100001000010000100001000010000100001000010000100001000010000100001000000000000000000000000000000000000000000
+0114000014730127301473016700147300f730147000e73014730127301470016730147300f730147000e73014730127301470016730147300f730147000e73014730127301473016700147300f730147300e730
+010d0000240502605028050190501b0501e0502405028050290502b0502d050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+010300001e7401f0401a7000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
 00 02414344
 03 06444344
-00 42414344
+00 01414344
 00 43420244
-03 01424344
-00 41424344
-00 41424344
-00 41424344
-00 41424344
+03 01474344
+00 05424344
+03 07474741
+03 01414144
+00 48424344
 00 41424344
 00 41424344
 00 41424344
