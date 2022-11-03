@@ -11,7 +11,6 @@ player_start()
 music(6,0,0)
 scene = "prologue"
 reading=false
-win = false
 end
 
 function tb_init(voice,string)
@@ -107,11 +106,6 @@ p2m.lm = 7
 p2m_sprite = 146
 p2m_playing = true
 
-function sound_win ()
-if win == true then 
-sfx(8)
-end
-end
 -->8
 -- update
 --(appelee 30 fois/sec) 
@@ -135,6 +129,7 @@ if scene == "prologue" then
     end    
 	elseif scene=="menu" then
 	 update_menu()
+	 reboot_grids()
 	elseif scene=="game1" then
 	 update_game1()	 
 	elseif scene=="game2" then
@@ -193,24 +188,6 @@ function tb_update()  -- this function handles the text box on every frame updat
     end
 end
 
-function reboot_grids()
-if scene == "game1" then
-  for l=1,7 do
- grid[l] = {}
- for c=1,7 do
-  grid[l][c] =0
-  end
-  end
-elseif scene == "game2" then
- for lm=1,7 do
- gridm[lm] = {}
- for cm=1,7 do
-  gridm[lm][cm] =0
- end
-end
-end
-end
-
 function player_start()
 	if flr(rnd(2))==1
 	then
@@ -227,9 +204,8 @@ end
 
 function update_game1()
 	if btnp(5,1) then
-    scene="menu"
-    reboot_grids() 
-    sfx(9)    
+    scene="menu" 
+    sfx(9)         
  end           
 	update_p1()
 	update_p2()	
@@ -705,7 +681,6 @@ function update_game2()
  if btnp(5,1) then
        scene="menu"
        reboot_grids()
-       win =false
        sfx(9)
  end
 	update_p1m()
@@ -1213,7 +1188,6 @@ animated_win_p2()
 end	
  
 function draw_animated_win()
-win = true
 if scene == "game1" then
 rectfill (0,112,112,127,0)
 spr(br_sprite,21,115)
@@ -1236,16 +1210,16 @@ end
 if btnp(4)  then
 		sfx(8)
 		end
-	draw_animated_win()
+		draw_animated_win()
 		animated_win_p1()
-		reboot()
+		reboot_winp1()
  if scene=="game1" then	
 			if btnp(4) then
 		 run()	 
 		 music(4)
 		 end
 	elseif scene=="game2" then
-		 if btnp(5) then
+		 if btnp(5) then		
 		 run()
 		 music(4)
 		 end
@@ -1261,7 +1235,7 @@ if btnp(4,1)  then
 		end
 	draw_animated_win()
 	animated_win_p2()
-	reboot()
+	reboot_winp2()
 	if scene=="game1" then	
 		if btnp(4) then
 		 run()
@@ -1307,14 +1281,42 @@ elseif scene == "game2" then
  end 
 end
 
-function reboot()
+function reboot_winp1()
 	if scene == "game1" then
-		p1_playing=false
+		p1_playing=true
 		p2_playing=false
 	elseif scene == "game2"then
-		p1m_playing=false
+		p1m_playing=true
 		p2m_playing=false
 		end
+end
+
+function reboot_winp2()
+	if scene == "game1" then
+		p1_playing=false
+		p2_playing=true
+	elseif scene == "game2"then
+		p1m_playing=false
+		p2m_playing=true
+		end
+end
+
+function reboot_grids()
+if scene == "game1" then
+  for l=1,7 do
+ grid[l] = {}
+ for c=1,7 do
+  grid[l][c] =0
+  end
+  end
+elseif scene == "game2" then
+ for lm=1,7 do
+ gridm[lm] = {}
+ for cm=1,7 do
+  gridm[lm][cm] =0
+ end
+end
+end
 end
 
 function tb_draw() -- this function draws the text box.
